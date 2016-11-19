@@ -9,6 +9,8 @@ from os        import getcwd
 from os.path   import join
 from os.path   import exists
 
+from globals import g_override
+
 # interface + data binding for managing the testcases.
 class Cases:
     # TODO: use script directory instead of cwd, and require the containers directory to be local to the script
@@ -16,6 +18,7 @@ class Cases:
     _testcases = join(getcwd(), 'cases/')
     _continueOnError = True
     _lenient = True
+
     
     # if current_working_directory = None, then we use the working dir dictated by the dockerfile
     # if none is specified in the dockerfile, then docker uses '/'
@@ -57,14 +60,26 @@ class Cases:
             ShellCall('%s /env/dotnet-bootstrap/bin/dotnet restore .'%(self._docker_compose(container_name, local_mount_location, join("/env/dotnet-bootstrap/testing/", casename))), lenient=self._lenient)
             ShellCall('%s /env/dotnet-bootstrap/bin/dotnet run'%(self._docker_compose(container_name, local_mount_location, join("/env/dotnet-bootstrap/testing/", casename))), lenient=self._lenient)
 
+    def _runOverride(self):
+        for container in g_override["containers"]:
+            for case in g_override["cases"]:
+                try:
+                    self.RunIn(container, case)
+                except ContinueOnError: # we threw this up with the intention of being OK with moving on.
+                    continue
+            
     # runs the full matrix of tests
     def RunAll(self):
+        if g_override:
+            self._runOverride()
+            return
+        
         for root, containers, files in os.walk(self._supported_containers):
             for container in containers: # we keep it explicitly the case that there are no other directories in the cases or containers directories.
                 for root, cases, files in os.walk(self._testcases):
                     for case in cases:
                         try:
-                            self.RunIn(container, case) # runs the full matrix of environments and cases
+                                self.RunIn(container, case) # runs the full matrix of environments and cases
                         except ContinueOnError:
                             continue
                     break # just walk the top level

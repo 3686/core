@@ -8,10 +8,20 @@ FROM opensuse:13.2
 # Install the base toolchain we need to build anything (clang, cmake, make and the like)
 # this does not include libraries that we need to compile different projects, we'd like
 # them in a different layer.
+RUN zypper -n update
+
 RUN zypper -n install binutils \
-              cmake \
+              python \
+	      cmake \
               which \
               gcc \
+	      libtool \
+	      python-xml \
+	      libicu-devel \
+	      lldb \
+	      lldb-devel \
+	      libunwind-devel \
+	      libuuid-devel \
               llvm-clang \
               tar \
               ncurses-utils \
@@ -27,11 +37,12 @@ RUN zypper addrepo -G http://download.opensuse.org/repositories/devel:/tools:/lt
     zypper -n remove krb5-mini && \
     zypper -n install libunwind \
                       libicu \
-                      lttng-ust \
+		      krb5-devel \
+                      lttng-ust-devel \
                       libuuid1 \
+		      libopenssl-devel \
                       libopenssl1_0_0 \
-                      libcurl4 \
-                      krb5 && \
+                      libcurl-devel && \
     zypper clean -a
 
 RUN update-alternatives --install /usr/bin/c++ c++ /usr/bin/clang++ 100

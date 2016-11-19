@@ -30,6 +30,7 @@ RUN dnf install -y git \
 # Dependencies of CoreCLR and CoreFX.
 RUN dnf install -y libicu-devel \
         libuuid-devel \
+	libtool \
         libcurl-devel \
         openssl-devel \
         libunwind-devel \
@@ -39,6 +40,7 @@ RUN dnf install -y libicu-devel \
 # Upgrade NSS, used for SSL, to avoid NuGet restore timeouts.
 RUN dnf upgrade -y nss
 RUN dnf clean all
+
 
 # Set working directory
 VOLUME /env/dotnet-bootstrap
