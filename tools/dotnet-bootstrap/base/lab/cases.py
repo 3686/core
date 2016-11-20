@@ -49,16 +49,19 @@ class Cases:
                         
         # run the bootstrap
         ShellCall('%s python /env/dotnet-bootstrap/dotnet.bootstrap.py -to /env/dotnet-bootstrap/'%(docker_run_cmd), lenient = self._lenient) # this will generate the src, obj, and bin directory here.
-        
-        # TODO: place into a ShellCall
                 
         # create whatever project file is the latest and greatest (was project.json, and is now named after the directory.csproj)
         ShellCall('%s /env/dotnet-bootstrap/bin/dotnet new -t Console'%(self._docker_compose(container_name, local_mount_location, join("/env/dotnet-bootstrap/testing/", casename))), lenient= self._lenient)
+        #ShellCall('ls', cwd=join(testing_destination, casename, casename + '.csproj'))
+        
         # confirm that it exists.
         if exists(join(testing_destination, casename, casename + '.csproj')):
+            ShellCall('mkdir -p %s'%join(testing_destination, casename, "result"))
+            ShellCall('touch %s'%(join(testing_destination, casename, "result", "pass"))) # spawn a result; a failure is when this doesn't exist. If this exists, this is a passing testcase.
+            
             ShellCall('cp -R %s/* %s'%(join(self._testcases, casename), join(testing_destination, casename)), lenient= self._lenient)
-            ShellCall('%s /env/dotnet-bootstrap/bin/dotnet restore .'%(self._docker_compose(container_name, local_mount_location, join("/env/dotnet-bootstrap/testing/", casename))), lenient=self._lenient)
-            ShellCall('%s /env/dotnet-bootstrap/bin/dotnet run'%(self._docker_compose(container_name, local_mount_location, join("/env/dotnet-bootstrap/testing/", casename))), lenient=self._lenient)
+            # ShellCall('%s /env/dotnet-bootstrap/bin/dotnet restore .'%(self._docker_compose(container_name, local_mount_location, join("/env/dotnet-bootstrap/testing/", casename))), lenient=self._lenient)
+            # ShellCall('%s /env/dotnet-bootstrap/bin/dotnet run'%(self._docker_compose(container_name, local_mount_location, join("/env/dotnet-bootstrap/testing/", casename))), lenient=self._lenient)
 
     def _runOverride(self):
         for container in g_override["containers"]:
